@@ -1,0 +1,16 @@
+version: 1.0.0.{build}
+image: Visual Studio 2017
+build:
+  project: MediaControl.sln
+  verbosity: minimal
+artifacts:
+- path: bin\Debug\mb_MediaControl.dll
+  name: mb_MediaControl.dll
+deploy:
+- provider: GitHub
+  auth_token:
+    secure: HgdTSgvc5udYCkaMHmhqW9OtEgje47pX2U/qyRtMxO6Dvm7PGILkgyFIJg0BXHHV
+  artifact: bin\Debug\mb_MediaControl.dll
+  force_update: false
+  on:
+    APPVEYOR_REPO_TAG: true
