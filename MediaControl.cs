@@ -27,7 +27,7 @@ namespace MusicBeePlugin
             about.PluginInfoVersion = PluginInfoVersion;
             about.Name = "Media Control";
             about.Description = "Enables MusicBee to interact with the Windows 10 Media Control overlay.";
-            about.Author = "Steven Mayall";
+            about.Author = "Ameer Dawood";
             about.TargetApplication = "";   //  the name of a Plugin Storage device or panel header for a dockable panel
             about.Type = PluginType.General;
             about.VersionMajor = 1;  // your plugin version
