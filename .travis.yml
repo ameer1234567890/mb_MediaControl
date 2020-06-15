@@ -1,5 +1,5 @@
 os: windows
-mono: none
+mono: 3.12.0
 dotnet: 4.5
 language: csharp
 solution: MediaControl.sln
