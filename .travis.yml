@@ -1,7 +1,10 @@
-mono: none
-dotnet: 4.5
 language: csharp
+mono: latest
+dotnet: 3.1.200
 solution: MediaControl.sln
+before_install:
+  - cd src
 script:
-  - dotnet build
+  - dotnet restore
+  - msbuild
   - ls -lhR
