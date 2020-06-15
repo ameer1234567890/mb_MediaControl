@@ -2,3 +2,4 @@ language: csharp
 solution: MediaControl.sln
 script:
   - nuget restore MediaControl.sln
+  - ls -lAhR
