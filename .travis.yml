@@ -6,5 +6,5 @@ before_install:
   - cd src
 script:
   - dotnet restore
-  - msbuild
+  - msbuild MediaControl.sln
   - ls -lhR
