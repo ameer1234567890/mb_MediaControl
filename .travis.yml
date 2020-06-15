@@ -1,3 +1,4 @@
+os: windows
 mono: none
 language: csharp
 solution: MediaControl.sln
