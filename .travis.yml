@@ -2,7 +2,10 @@ os: windows
 language: csharp
 mono: none
 
-script:
+install:
   - choco install dotnetcore-sdk
   - dotnet --version
   - dotnet restore
+
+script:
+  - dotnet build
