@@ -1,11 +1,4 @@
-os: windows
 language: csharp
-mono: none
-
-install:
-  - choco install dotnetcore-sdk
-  - dotnet --version
-  - dotnet restore
-
+solution: solution-name.sln
 script:
-  - dotnet build
+  - nuget restore MediaControl.sln
