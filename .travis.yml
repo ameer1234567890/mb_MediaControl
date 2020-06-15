@@ -1,3 +1,4 @@
+mono: none
 language: csharp
 solution: MediaControl.sln
 script:
