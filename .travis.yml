@@ -1,4 +1,4 @@
 language: csharp
-solution: solution-name.sln
+solution: MediaControl.sln
 script:
   - nuget restore MediaControl.sln
