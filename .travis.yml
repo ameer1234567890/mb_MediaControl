@@ -2,8 +2,6 @@ language: csharp
 mono: latest
 dotnet: 3.1.200
 solution: MediaControl.sln
-before_install:
-  - cd src
 script:
   - dotnet restore
   - msbuild MediaControl.sln
