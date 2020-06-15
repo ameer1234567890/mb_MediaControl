@@ -1,8 +1,0 @@
-language: csharp
-mono: latest
-dotnet: 3.1.200
-solution: MediaControl.sln
-script:
-  - dotnet restore
-  - msbuild MediaControl.sln /p:Configuration="Release" /p:Platform="Any CPU"
-  - ls -lhR
