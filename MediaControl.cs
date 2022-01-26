@@ -6,8 +6,11 @@ using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage;
 using Windows.Storage.Streams;
-using System.Runtime.InteropServices.WindowsRuntime;
 using static System.IO.WindowsRuntimeStreamExtensions;
+using System.IO;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Gma.System.MouseKeyHook;
+using System.Windows.Forms;
 
 namespace MusicBeePlugin
 {
@@ -20,8 +23,16 @@ namespace MusicBeePlugin
         private MusicDisplayProperties musicProperties;
         private InMemoryRandomAccessStream artworkStream;
 
+        private IKeyboardMouseEvents globalHook;
+        private int mediaKeysInvalidateBeforeMs = 2000; // media control buttons won't trigger for 2000 ms after media button is pressed
+        private DateTime lastPlayPauseKeyPress;
+        private DateTime lastStopKeyPress;
+        private DateTime lastPreviousTrackKeyPress;
+        private DateTime lastNextTrackKeyPress;
+
         public PluginInfo Initialise(IntPtr apiInterfacePtr)
         {
+            SubscribeGlobalHooks();
             mbApiInterface = new MusicBeeApiInterface();
             mbApiInterface.Initialise(apiInterfacePtr);
             about.PluginInfoVersion = PluginInfoVersion;
@@ -32,7 +43,7 @@ namespace MusicBeePlugin
             about.Type = PluginType.General;
             about.VersionMajor = 1;  // your plugin version
             about.VersionMinor = 0;
-            about.Revision = 1;
+            about.Revision = 2;
             about.MinInterfaceVersion = MinInterfaceVersion;
             about.MinApiRevision = MinApiRevision;
             about.ReceiveNotifications = ReceiveNotificationFlags.PlayerEvents;
@@ -54,12 +65,37 @@ namespace MusicBeePlugin
         // MusicBee is closing the plugin (plugin is being disabled by user or MusicBee is shutting down)
         public void Close(PluginCloseReason reason)
         {
+            UnsubscribeGlobalHooks();
             SetArtworkThumbnail(null);
         }
 
         // uninstall this plugin - clean up any persisted files
         public void Uninstall()
         {
+        }
+
+        private void MediaControl_PlayPauseButtonPress()
+        {
+            if (DateTime.Now.Subtract(lastPlayPauseKeyPress).TotalMilliseconds > mediaKeysInvalidateBeforeMs)
+                mbApiInterface.Player_PlayPause();
+        }
+
+        private void MediaControl_StopButtonPress()
+        {
+            if (DateTime.Now.Subtract(lastStopKeyPress).TotalMilliseconds > mediaKeysInvalidateBeforeMs)
+                mbApiInterface.Player_Stop();
+        }
+
+        private void MediaControl_PreviousTrackButtonPress()
+        {
+            if (DateTime.Now.Subtract(lastPreviousTrackKeyPress).TotalMilliseconds > mediaKeysInvalidateBeforeMs)
+                mbApiInterface.Player_PlayPreviousTrack();
+        }
+
+        private void MediaControl_NextTrackButtonPress()
+        {
+            if (DateTime.Now.Subtract(lastNextTrackKeyPress).TotalMilliseconds > mediaKeysInvalidateBeforeMs)
+                mbApiInterface.Player_PlayNextTrack();
         }
 
         // receive event notifications from MusicBee
@@ -103,21 +139,17 @@ namespace MusicBeePlugin
             switch (args.Button)
             {
                 case SystemMediaTransportControlsButton.Stop:
-                    mbApiInterface.Player_Stop();
+                    MediaControl_StopButtonPress();
                     break;
                 case SystemMediaTransportControlsButton.Play:
-                    if (mbApiInterface.Player_GetPlayState() != PlayState.Playing)
-                       mbApiInterface.Player_PlayPause();
-                    break;
                 case SystemMediaTransportControlsButton.Pause:
-                    if (mbApiInterface.Player_GetPlayState() != PlayState.Paused)
-                        mbApiInterface.Player_PlayPause();
+                    MediaControl_PlayPauseButtonPress();
                     break;
                 case SystemMediaTransportControlsButton.Next:
-                    mbApiInterface.Player_PlayNextTrack();
+                    MediaControl_NextTrackButtonPress();
                     break;
                 case SystemMediaTransportControlsButton.Previous:
-                    mbApiInterface.Player_PlayPreviousTrack();
+                    MediaControl_PreviousTrackButtonPress();
                     break;
                 case SystemMediaTransportControlsButton.Rewind:
                     break;
@@ -221,11 +253,47 @@ namespace MusicBeePlugin
             }
             else
             {
+                new MemoryStream(data).AsInputStream();
+
                 artworkStream = new InMemoryRandomAccessStream();
                 await artworkStream.WriteAsync(data.AsBuffer());
                 displayUpdater.Thumbnail = RandomAccessStreamReference.CreateFromStream(artworkStream);
             }
         }
+
+        private void SubscribeGlobalHooks()
+        {
+            globalHook = Hook.GlobalEvents();
+            globalHook.KeyPress += GlobalHook_KeyPress;
+        }
+
+        private void UnsubscribeGlobalHooks()
+        {
+            globalHook.KeyPress -= GlobalHook_KeyPress;
+            globalHook.Dispose();
+        }
+
+        private void GlobalHook_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            switch((Keys)e.KeyChar)
+            {
+                case Keys.MediaPlayPause:
+                    lastPlayPauseKeyPress = DateTime.Now;
+                    break;
+                case Keys.MediaStop:
+                    lastStopKeyPress = DateTime.Now;
+                    break;
+                case Keys.MediaPreviousTrack:
+                    lastPreviousTrackKeyPress = DateTime.Now;
+                    break;
+                case Keys.MediaNextTrack:
+                    lastNextTrackKeyPress = DateTime.Now;
+                    break;
+                default:
+                    break;
+            }
+        }
+
     }
 
 }
